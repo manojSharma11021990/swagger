@@ -1,0 +1,2597 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Global Dispute Management
+  description: |
+    This is rest definition of dispute related resources and API
+  contact:
+    email: cbkdev@yapstone.com
+
+basePath: /dispute-management/api/v1
+
+schemes:
+  - http
+  - https
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+securityDefinitions:
+  Bearer:
+    type: 'apiKey'
+    name: 'Authorization'
+    in: header
+
+paths:
+
+  /disputes/{id}:
+    get:
+      tags: ['dispute']
+      summary: Retrieves a dispute by id
+      description: Retrieves a dispute entity by id
+      operationId: getDisputeById
+      parameters:
+        - name: id
+          in: path
+          description: Id of dispute entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Dispute'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /disputes/{id}/events:
+    get:
+      tags: ['dispute']
+      summary: Retrieve dispute events by id and it's type
+      description: Retrieve dispute events by id and it's type
+      operationId: getDisputeEventsByDisputeIdAndTypes
+      parameters:
+        - name: id
+          in: path
+          description: Id of dispute entity
+          required: true
+          type: string
+        - name: types
+          in: query
+          description: Dispute event types to filter the results on
+          required: false
+          type: array
+          items:
+            type: string
+            enum: &DISPUTE_EVENT
+              - ADJUSTMENT_ORDER_CREATED
+              - AGENT_FOLLOW_UP_DATE_CALCULATED
+              - CASE_FILE_EXPIRED
+              - CRM_CASE_CREATED
+              - CRM_CASE_UPDATED
+              - DECISION_PENDING
+              - DISPUTE_ACCEPTED
+              - DISPUTE_CLOSED
+              - EVIDENCE_RECEIVED
+              - EVIDENCE_REQUESTED
+              - EVIDENCE_SUBMITTED
+              - FEE_ORDER_CREATED
+              - FINAL_DISPOSITION_UPDATED
+              - FOLLOW_UP_DATE_CALCULATED
+              - PROCESSOR_EVENT_CREATED
+              - PORTAL_WIZARD_STATE_UPDATED
+              - RELEASE_ORDER_HOLD_REQUESTED
+              - WORK_BY_DATE_CALCULATED
+              - WORKFLOW_STATUS_UPDATED
+          collectionFormat: multi
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/DisputeEventPagedResponse'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /disputeEvents:
+    post:
+      tags: ['dispute']
+      summary: Creates a new dispute entity
+      description: Creates a new dispute entity
+      operationId: createDisputeEvent
+      parameters:
+        - name: request
+          in: body
+          description: New dispute entity to be created
+          required: true
+          schema:
+            $ref: '#/definitions/DisputeEvent'
+        - name: X-YapStone-IdempotentKey
+          in: header
+          type: string
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/DisputeEvent'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+          
+  /disputeEvents/{id}/state:
+    patch:
+      tags: ['dispute']
+      summary: Change the state of the dispute event
+      description: |
+        Change the state of the dispute event (processor event created event) by posting a state change request
+      operationId: updateState
+      parameters:
+        - name: id
+          in: path
+          description: Id of the processor event
+          required: true
+          type: string
+        - name: request
+          in: body
+          description: State change request
+          required: true
+          schema:
+            $ref: '#/definitions/DisputeEventStateChangeRequest'
+      responses:
+        204:
+          description: No content
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /search/dispute/{originationId}:
+    get:
+      tags: ['search']
+      summary: Retrieves a dispute by originationId
+      description: Retrieves a dispute entity by originationId
+      operationId: getDisputeByOriginationId
+      parameters:
+        - name: originationId
+          in: path
+          description: originationId of dispute entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Dispute'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /processorEvents:
+    post:
+      tags: ['processorEvent']
+      summary: Creates a processor event
+      description: Creates a processor event
+      operationId: createProcessorEvent
+      parameters:
+        - name: request
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProcessorEvent'
+        - name: X-YapStone-IdempotentKey
+          in: header
+          type: string
+      responses:
+        201:
+          description: Success
+          schema:
+            $ref: '#/definitions/ProcessorEvent'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+          
+  /processorEvents/{id}:
+    get:
+      tags: ['processorEvent']
+      summary: Retrieves a processor event by id
+      description: Retrieves a processor entity by id
+      operationId: getProcessorEventById
+      parameters:
+        - name: id
+          in: path
+          description: Id of processor event entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ProcessorEvent'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /processorEvents/{id}/dispute:
+    get:
+      tags: ['processorEvent']
+      summary: Retrieves a dispute by processor event id
+      description: Retrieves a dispute by processor event id
+      operationId: getDisputeByProcessorEventId
+      parameters:
+        - name: id
+          in: path
+          description: Id of processor event entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Dispute'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+          
+  /processorEvents/{id}/state:
+    patch:
+      tags: ['processorEvent']
+      summary: Change the state of the processor event
+      description: |
+        Change the state of the processor event by posting a state change request
+      operationId: updateState
+      parameters:
+        - name: id
+          in: path
+          description: Id of the processor event
+          required: true
+          type: string
+        - name: request
+          in: body
+          description: State change request
+          required: true
+          schema:
+            $ref: '#/definitions/ProcessorEventStateChangeRequest'
+      responses:
+        204:
+          description: No content
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /caseFiles/{id}:
+    get:
+      tags: ['caseFile']
+      summary: Get a case file
+      description: Get a case file
+      operationId: getCaseFileById
+      parameters:
+        - name: id
+          in: path
+          description: Id of the case file
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CaseFile'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+          
+  /caseFiles/{id}/dispute:
+    get:
+      tags: ['caseFile']
+      summary: Get a case file
+      description: Get a case file
+      operationId: getDisputeByCaseFileId
+      parameters:
+        - name: id
+          in: path
+          description: Id of the case file
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Dispute'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /caseFiles/{id}/evidences:
+    post:
+      tags: ['caseFile']
+      summary: Add an evidence (file or text) to the case file
+      operationId: addEvidence
+      parameters:
+        - name: id
+          in: path
+          description: Id of case file
+          required: true
+          type: string
+        - name: request
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Evidence'
+        - name: X-YapStone-IdempotentKey
+          in: header
+          type: string
+      responses:
+        201:
+          description: Success
+          schema:
+            $ref: '#/definitions/Evidence'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+    get:
+      tags: ['caseFile']
+      summary: Get all evidences in a case file
+      operationId: getEvidences
+      parameters:
+        - name: id
+          in: path
+          description: Id of case file
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/EvidenceResponse'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+  
+  /evidences/{id}:
+    get:
+      tags: ['caseFile']
+      summary: Retrieves an evidence by id
+      description: Retrieves an evidence entity by id
+      operationId: getEvidenceById
+      parameters:
+        - name: id
+          in: path
+          description: Id of evidence entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Evidence'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+    delete:
+      tags: ['caseFile']
+      summary: Delete an evidence from the case file
+      operationId: deleteEvidence
+      parameters:
+        - name: id
+          in: path
+          description: Id of the evidence
+          required: true
+          type: string
+      responses:
+        204:
+          description: No content
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /evidences/{id}/caseFile:
+    get:
+      tags: ['caseFile']
+      summary: Get a case file by evidenceId
+      description: Get a case file by evidenceId
+      operationId: getCaseFileByEvidenceId
+      parameters:
+        - name: id
+          in: path
+          description: Id of the evidence
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CaseFile'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /files:
+    post:
+      tags: ['files']
+      summary: Create a new file entity
+      description: Create a new dispute file entity
+      operationId: createFile
+      parameters:
+        - name: request
+          in: body
+          description: New file entity information to be created
+          required: true
+          schema:
+            $ref: '#/definitions/FileEntity'
+        - name: X-YapStone-IdempotentKey
+          in: header
+          type: string
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/FileEntity'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /files/{id}:
+    get:
+      tags: ['files']
+      summary: Retrieve a file entity by id
+      description: Retrieve a dispute file entity by id
+      operationId: getFileById
+      parameters:
+        - name: id
+          in: path
+          description: Id of file entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/FileEntity'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /files/{id}/state:
+    put:
+      tags: ['files']
+      summary: Update file entity state
+      description: Updates file entity state
+      operationId: updateFileState
+      parameters:
+      - name: id
+        in: path
+        description: Id of file entity
+        required: true
+        type: string
+      - in: body
+        name: request
+        description: New file entity state
+        required: true
+        schema:
+          $ref: '#/definitions/FileEntityStateChangeRequest'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/FileEntity'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+      - Bearer: []
+
+  /files/{id}/records:
+    post:
+      tags: ['records']
+      summary: Create a new file record entity
+      description: Create a new file record entity
+      operationId: createFileRecord
+      parameters:
+        - name: id
+          in: path
+          description: Id of file entity
+          required: true
+          type: string
+        - name: request
+          in: body
+          description: New file record entity information to be created
+          required: true
+          schema:
+            $ref: '#/definitions/FileRecord'
+        - name: X-YapStone-IdempotentKey
+          in: header
+          type: string
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/FileRecord'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+          
+    get:
+      tags:
+        - records
+      summary: Retrieve all file records belonging to a file entity
+      description: Retrieve all file records belonging to a file entity
+      operationId: getAllFileRecordsByFileEntityId
+      parameters:
+        - name: id
+          in: path
+          description: Id of file entity
+          required: true
+          type: string
+        - $ref: "#/parameters/offset"
+        - $ref: "#/parameters/limit"
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/FileRecordResponse'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []      
+
+  /records/{id}:
+    get:
+      tags:
+        - records
+      summary: Retrieves a file record entity by id
+      description: Retrieves a file record entity by id
+      operationId: getFileRecordById
+      parameters:
+        - name: id
+          in: path
+          description: Id of file record entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/FileRecord'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+          
+  /records/{id}/state:
+    put:
+      tags:
+      - records
+      summary: Updates file record entity state by id
+      description: Updates file record entity state by id
+      operationId: updateFileRecordState
+      parameters:
+      - name: id
+        in: path
+        description: Id of file record entity
+        required: true
+        type: string
+      - in: body
+        name: request
+        description: New file record entity state
+        required: true
+        schema:
+          $ref: '#/definitions/FileRecordStateChangeRequest'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/FileRecord'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+      - Bearer: []
+
+  /records/{id}/processorEvent:
+    get:
+      tags: ['records']
+      summary: Retrieves a processorEvent entity by fileRecordId
+      description: Retrieves a processorEvent entity by fileRecordId
+      operationId: getProcessorEventByFileRecordId
+      parameters:
+        - name: id
+          in: path
+          description: Id of file record entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ProcessorEvent'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /reasonCodes:
+    post:
+      tags: ['reasonCodes']
+      summary: Creates a new reason code entity
+      description: Creates a reason code entity
+      operationId: createReasonCode
+      parameters:
+        - name: request
+          in: body
+          description: New reason code entity information to be created
+          required: true
+          schema:
+            $ref: '#/definitions/ReasonCode'
+        - name: X-YapStone-IdempotentKey
+          in: header
+          type: string
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/ReasonCode'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+    get:
+      tags: ['reasonCodes', 'search']
+      summary: Get all reason codes
+      description: Get all reason codes with pagination
+      operationId: getAllReasonCodes
+      parameters:
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ReasonCodeResponse'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+  /reasonCodes/{id}:
+    get:
+      tags: ['reasonCodes']
+      summary: Retrieves a reason code by id
+      description: Retrieves a reason code by id
+      operationId: getReasonCodeById
+      parameters:
+        - name: id
+          in: path
+          description: Id of reason code entity
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ReasonCode'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        404:
+          description: Not found
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+    put:
+      tags: ['reasonCodes']
+      summary: Updates a reason code entity
+      description: Updates reason code entity
+      operationId: updateReasonCode
+      parameters:
+        - name: id
+          in: path
+          description: Id of reason code entity
+          required: true
+          type: string
+        - name: request
+          in: body
+          description: Reason code entity information to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/ReasonCode'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/ReasonCode'
+        400:
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/Errors'
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: '#/definitions/Errors'
+      security:
+        - Bearer: []
+
+parameters:
+  limit:
+    name: limit
+    in: query
+    description: Maximum number of items to return
+    type: integer
+    default: 10
+    minimum: 1
+    x-validation-minimum-message: "{DM032}"
+  offset:
+    name: offset
+    in: query
+    description: Offset to start returning items at
+    type: integer
+    default: 0
+    minimum: 0
+    x-validation-minimum-message: "{DM033}"
+  sort:
+    name: sort
+    in: query
+    description: Properties to sort and sort direction
+    type: array
+    items:
+      type: string
+
+definitions:
+
+  # enums
+  DisputeWorkflowEnum:
+    description: Status of the dispute at the card scheme
+    type: string
+    enum: &DISPUTE_WORKFLOW
+      - ARBITRATION
+      - CHARGEBACK
+      - CHARGEBACK_CANCEL
+      - CHARGEBACK_CREDIT
+      - COMPLIANCE
+      - FIRST_CHARGEBACK
+      - INQUIRY
+      - PRE_ARBITRATION
+      - PRE_COMPLIANCE
+      - REPRESENTMENT
+      - REPRESENTMENT_REJECT
+      - RETRIEVAL_REQUEST
+      - RETRIEVAL_RESPONSE
+      - SECOND_CHARGEBACK
+      - UNKNOWN
+      - UNPROCESSABLE
+
+  RecordTypeEnum:
+      description: Type of dispute file records
+      type: string
+      enum: &RECORD_TYPE
+        - AMEX_CBNOT_RECORD
+        - AMEX_INQ02_RECORD
+        - FIRSTDATA_009_RECORD
+        - FIRSTDATA_010_RECORD
+        - FIRSTDATA_011_RECORD
+        - FIRSTDATA_015_RECORD
+        - GLOBALPAY_CS_RECORD
+        - GLOBALPAY_FA_RECORD
+        - GLOBALPAY_RR_RECORD
+        - GLOBALPAY_PF_RECORD
+        - GLOBALPAY_CHARGEBACK_RECORD
+        - VANTIV_DMS_CHARGEBACK_RECORD
+        - VANTIV_LEGACY_CHARGEBACK_RECORD
+        - UNKNOWN
+
+  CrmCaseStatusEnum:
+    description: CRM case status
+    type: string
+    enum: &CRM_CASE_STATUS
+      - CLOSED
+      - HOLD
+      - OPEN
+      - PENDING
+
+  DisputeModelEnum:
+    description: The dispute model
+    type: string
+    enum: &DISPUTE_MODEL
+      - MANAGED
+      - PASS_THROUGH
+
+  DisputeOrderTypeEnum:
+    description: Type of the order, as in order service
+    type: string
+    enum: &ORDER_TYPE
+      - CHARGEBACK
+      - FEE
+  
+  DisputeOrderSubTypeEnum:
+    description: Sub-type of the order for dispute reference
+    type: string
+    enum: &ORDER_SUB_TYPE
+      - ADJUSTMENT_CREDIT
+      - ADJUSTMENT_DEBIT
+      - DISBURSEMENT
+      - FEE
+      - HOUSE_ADJUSTMENT
+      - REIMBURSEMENT
+
+  OriginalTransactionPlatformEnum:
+    description: Platform where the transaction occurred
+    type: string
+    enum:
+      - TRANSACT
+      - RP
+      - HA
+      - IP
+      - GD1
+  
+  FilerRefTypeEnum:
+    description: Ref type of filer
+    type: string
+    enum: &ENTITY_REF
+      - ASSET_LISTING
+      - MARKETPLACE
+      - MERCHANT
+      - PARTY
+
+  FiledAgainstRefTypeEnum:
+    description: Ref type of filed against entity
+    type: string
+    enum: *ENTITY_REF
+
+
+  PaymentProcessorEnum:
+    description: payment processors
+    type: string
+    enum: &PAYMENT_PROCESSOR
+      - FIRST_DATA
+      - VANTIV
+      - GLOBAL_PAY
+      - AMEX
+      - OTHER
+
+  TriggeredByEnum:
+    description: Triggered by
+    type: string
+    enum: &TRIGGERED_BY
+      - CRM
+      - EVENT
+
+  PreArbitrationTypeEnum:
+    type: string
+    enum: &PRE_ARBITRATION_TYPE
+      - INCOMING
+      - OUTGOING
+      - UNKNOWN
+
+  DisputeStatusEnum:
+    description: Status of the dispute
+    type: string
+    enum:
+      - NEW
+      - EVIDENCE_REQUESTED
+      - EVIDENCE_RECEIVED
+      - DECISION_PENDING
+      - EXPIRED
+      - CLOSED
+
+  TransactionInfo:
+    description: Describes amount, currency and date/time of the transaction
+    required:
+      - amount
+      - currency
+      - dateTime
+    properties:
+      amount:
+        type: integer
+        format: int64
+        description: Transaction amount in cents
+        x-validation-required-message: "{DM011}"
+      currency:
+        type: string
+        description: ISO 4217 currency code
+        x-validation-required-message: "{DM083}"
+      dateTime:
+        type: string
+        format: date-time
+        x-validation-required-message: "{DM012}"
+
+  FileEntityStateChangeRequest:
+    type: object
+    description: FileEntity state change request
+    required:
+      - state
+    properties:
+      state:
+        type: string
+        description: New FileEntity state
+        x-validation-required-message: "{DM001}"
+        enum: &FILE_ENTITY_STATE
+          - CREATED
+          - PENDING
+          - PROCESSING
+          - PROCESSED
+          - FAILED
+          
+  FileRecordStateChangeRequest:
+    type: object
+    description: FileRecord state change request
+    required:
+    - state
+    properties:
+      state:
+        type: string
+        description: New FileRecord state
+        x-validation-required-message: "{DM001}"
+        enum: &PROCESSING_STATE
+        - CREATED
+        - DUPLICATE
+        - PENDING
+        - PROCESSING
+        - PROCESSED
+        - FAILED
+
+  ReasonCode:
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - type: object
+        description: Represents dispute reason codes - network (normalized) and processor (un-normalized)
+        required:
+          - networkReasonCode
+          - paymentProcessorReasonCode
+        properties:
+          active:
+            type: boolean
+            default: true
+          cardBrand:
+            type: string
+            description: card brand
+            enum: &CARD_BRAND
+              - VISA
+              - MASTERCARD
+              - AMEX
+              - DISCOVER
+              - OTHER
+          category:
+            description: Category of the reason code
+            type: string
+            default: NOT_SPECIFIED
+            enum:
+              - FRAUD
+              - NON_FRAUD
+              - PROCESSING_ERROR
+              - NOT_SPECIFIED
+          disputeGroup:
+            description: Yapstone internal dispute group
+            type: string
+            default: NOT_SPECIFIED
+            enum:
+              - CREDIT_NOT_PROCESSED
+              - DUPLICATE_OR_MULTIPLE_TXN
+              - FRAUDULENT
+              - INCORRECT_TXN_AMOUNT
+              - NOT_AS_DESCRIBED_OR_DEFECTIVE
+              - NOT_RECEIVED
+              - POTENTIAL_CHARGEBACK_NOTICE
+              - UNKNOWN_OR_REVIEW_REQUIRED
+              - UNRECOGNIZED
+              - NOT_SPECIFIED
+          networkReasonCode:
+            description: Network / normalized reason code
+            type: string
+            x-validation-required-message: "{DM028}"
+          paymentProcessor:
+            description: payment processors
+            type: string
+            enum: *PAYMENT_PROCESSOR
+          paymentProcessorReasonCode:
+            description: payment processor / un-normalized reason code
+            type: string
+            x-validation-required-message: "{DM029}"
+          reasonCodeDescription:
+            description: Reason code description / reason code definition
+            type: string
+          reasonCodeLongDescription:
+            description: Reason code long description
+            type: string
+          typicalCauses:
+            description: Typical causes for reported reason code
+            type: string
+          preventiveAction:
+            description: Preventive actions for the reason code
+            type: string
+          remediation:
+            description: Remediation documents for the reason code
+            type: array
+            items:
+              $ref: '#/definitions/Document'
+          requestCategory:
+            description: ReasonCode dispute category
+            type: string
+            enum:
+              - CHARGEBACK_REQUEST
+              - CASE_UPDATE
+              - INQUIRY
+              - RETRIEVAL_REQUEST
+              - ACH
+              - NOT_SPECIFIED
+
+  Document:
+    description: Represents the remediation documents based on reason codes
+    properties:
+      type:
+        description: Type of document
+        type: string
+      example:
+        description: Example of document
+        type: array
+        items:
+          type: string
+
+  PaymentInstrument:
+    description: PaymentInstrument reported by processor
+    required:
+      - last4
+    properties:
+      bin:
+        type: string
+        minLength: 6
+        maxLength: 6
+        description:  First 6 digits of the instrument
+        x-validation-min-max-length-message: "{DM046}"
+      cardBrand:
+        type: string
+        default: OTHER
+        enum: *CARD_BRAND
+      cardType:
+        type: string
+        default: UNKNOWN
+        enum:
+          - DEBIT
+          - CREDIT
+          - UNKNOWN
+      last4:
+        type: string
+        pattern: ^[0-9]{4}$
+        minLength: 4
+        maxLength: 4
+        description:  Last 4 digits of the instrument
+        x-validation-pattern-message: "{DM048}"
+        x-validation-required-message: "{DM018}"
+        x-validation-min-max-length-message: "{DM047}"
+
+  FileRecordDetail:
+      description: File record id and type used to create processor event
+      required:
+        - id
+        - recordType
+      properties:
+        id:
+          description: id of the file record
+          type: string
+          x-validation-required-message: "{DM055}"
+        recordType:
+          description: Type of the file record
+          type: string
+          enum: *RECORD_TYPE
+          x-validation-required-message: "{DM086}"
+
+  ReasonCodeResponse:
+      allOf:
+      - $ref: '#/definitions/RestResponse'
+      - type: "object"
+        properties:
+          results:
+            type: array
+            items:
+              $ref: "#/definitions/ReasonCode"
+
+  FileEntity:
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - type: object
+        description: Chargeback file entity information
+        required:
+          - location
+          - fileType
+        properties:
+          location:
+            type: string
+            format: string
+            description: Location of the file
+            x-validation-required-message: "{DM002}"
+          state:
+            default: CREATED
+            description: Current state of the file
+            enum: *FILE_ENTITY_STATE
+          fileType:
+            type: string
+            description: Type of dispute file
+            x-validation-required-message: "{DM003}"
+            enum:
+              - AMEX_CBNOT
+              - AMEX_INQ02
+              - FIRSTDATA_CHARGEBACK
+              - FIRSTDATA_INTL_CHARGEBACK
+              - GLOBALPAY_CHARGEBACK_CS
+              - GLOBALPAY_CHARGEBACK_RR
+              - GLOBALPAY_CHARGEBACK_PF
+              - GLOBALPAY_CHARGEBACK_FA
+              - VANTIV_CHARGEBACK
+              - UNKNOWN
+
+  FileRecord:
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - type: object
+        description: Represents the lines from the FileEntity
+        required:
+          - recordType
+          - content
+        properties:
+          fileEntityId:
+            type: string
+            format: string
+            description: Reference to File entity
+            readOnly: true
+            x-validation-read-only-message: "{DM004}"
+          content:
+            type: string
+            description: Content of the file record
+            x-validation-required-message: "{DM005}"
+          recordType: 
+            type: string
+            description: Type of dispute file records
+            enum: *RECORD_TYPE
+            x-validation-required-message: "{DM006}"
+          recordNumberInFile:
+            type: integer
+            format: int32
+            minimum: 0
+            x-validation-minimum-message: "{DM031}"
+          checksum:
+            type: string
+            description: Checksum of the record content   
+          state:
+            type: string
+            default: CREATED
+            description: State of the record
+            enum: *PROCESSING_STATE
+
+  FileRecordResponse:
+    allOf:
+      - $ref: '#/definitions/RestResponse'
+      - type: object
+        properties:
+          results:
+            type: array
+            items:
+              $ref: '#/definitions/FileRecord'
+
+  FilerRef:
+    description: Entity who filed the dispute
+    properties:
+      id:
+        description: Yap id of the entity who filed the dispute
+        type: string
+      type:
+        description: Type of entity
+        type: string
+  
+  FiledAgainstRef:
+    description: Entity against whom the dispute was filed
+    properties:
+      id:
+        description: Yap id of the entity whom the dispute was filed against
+        type: string
+      type:
+        description: Type of entity
+        type: string
+  
+  OrderRef:
+    description: Orders created as part of dispute processing
+    properties:
+      id:
+        description: Yap id of the order
+        type: string
+      type:
+        description: Type of the order, as in order service
+        type: string
+      subType:
+        description: Sub-type of the order for dispute reference
+        type: string
+      createdOn:
+        type: string
+        format: date-time
+      initiatedBy:
+        description: Yap id of the entity that initiated the order
+        type: string
+  
+  ProcessorNoteCreatorRef:
+    description: Note creator
+    properties:
+      source:
+        type: string
+        default: UNKNOWN
+        enum:
+          - PROCESSOR_EVENT
+          - UNKNOWN
+      id:
+        description: Yap id of the entity that created the note
+        type: string   
+
+  ProcessorNote:
+    description: Dispute notes
+    properties:
+      note:
+        type: string
+      createdOn:
+        type: string
+        format: date-time
+      createdBy:
+        $ref: '#/definitions/ProcessorNoteCreatorRef'
+
+  ReportedAmount:
+    description: Transaction information reported by processor
+    required:
+      - amount
+      - createdOn
+    properties:
+      amount:
+        $ref: '#/definitions/Amount'
+        x-validation-required-message: "{DM011}"
+      createdOn:
+        type: string
+        format: date-time
+        x-validation-required-message: "{DM077}"
+
+  ProcessorReportedDetails:
+    description: Dispute details as reported by the processor
+    required:
+      - adjustmentTransaction
+    properties:
+      dueDate:
+        description: Date by which a dispute request must be responded to the processor
+        type: string
+        format: date-time
+      notes:
+        type: array
+        items:
+          $ref: '#/definitions/ProcessorNote'
+      originalTransaction:
+        $ref: '#/definitions/ReportedAmount'
+      postDate:
+        description: Date on which the dispute was posted
+        type: string
+        format: date-time
+      requestDate:
+        description: Date on which the dispute was reported to the processor
+        type: string
+        format: date-time
+      processedTransaction:
+        $ref: '#/definitions/ReportedAmount'
+      adjustmentTransaction:
+        $ref: '#/definitions/ReportedAmount'
+        x-validation-required-message: "{DM049}"
+
+  Reason:
+    description: Reason as reported by the processor
+    required:
+      - processorCode
+    properties:
+      reasonCodeId:
+        description: Yap id of the reason code entity
+        type: string
+      processorCode:
+        description: Reason code reported by processor
+        type: string
+        x-validation-required-message: "{DM050}"
+      processorDescription:
+        description: Reason code description reported by processor
+        type: string
+
+  Refund:
+    description: Details of the Refund transaction.
+    properties:
+      refundTransactionIds:
+        description: The list of refund transaction ids.
+        type: array
+        items:
+          type: string
+      type:
+        description: Type of refund
+        type: string
+        enum:
+          - PARTIAL_REFUND
+          - FULL_REFUND
+      totalRefundAmount:
+        description: Total Refund Amount
+        $ref: '#/definitions/Amount'
+
+  Ticket:
+    description: Details of the ticket created in the CRM application
+    properties:
+      system:
+        description: The CRM application
+        type: string
+        default: ZENDESK
+        enum:
+          - ZENDESK
+      id:
+        description: Id of the ticket in CRM application
+        type: string
+      disputeEventId:
+        description: DisputeEvent id that initiated this ticket
+        type: string
+      status:
+        description: CRM case status
+        type: string
+      createdOn:
+        type: string
+        format: date-time
+        
+
+  WorkflowDetails:
+    description: Workflow detail of the dispute
+    properties:
+      followUpDate:
+        description: The date by which the filed against entity must respond to the dispute
+        type: string
+        format: date-time
+      workByDate:
+        description: The date by which the dispute must be responded to the processor
+        type: string
+        format: date-time
+      agentFollowUpDate:
+        description: Agent follow up date
+        type: string
+        format: date-time
+      tickets:
+        type: array
+        items:
+          $ref: '#/definitions/Ticket'
+
+  StateChange:
+    description: Wraps a state change
+    properties:
+      state:
+        type: string
+      reason:
+        description: Reason for the state change
+        type: string
+      updatedOn:
+        type: string
+        format: date-time
+        
+  DisputeEventItem:
+    description: A subset of DisputeEvent to be used in dispute entity
+    properties:
+      disputeEventId:
+        type: string
+      currentWorkflowStatus:
+        type: string
+      disputeEventType:
+        description: Type of the dispute event
+        type: string
+
+  OriginalTransaction:
+    type: object
+    description: Original transaction that was disputed
+    properties:
+      id:
+        description: Id of the original transaction that was disputed
+        type: string
+      orderId:
+        description: Id of the order the dispted transaction belongs to
+        type: string
+      originationId:
+        description: Origination Id reported by the processor in dispute file
+        type: string
+      correlationId:
+        description: Correlation Id of the original transaction
+        type: string
+      extClientRefId:
+        description: Unique transaction Id used by the client while creating the transaction
+        type: string
+      assetListingId:
+        description: Asset listing id
+        type: string
+      reservationNumber:
+        description: Reservation number
+        type: string
+      amount:
+        $ref: '#/definitions/Amount'
+      paymentInstrument:
+        $ref: '#/definitions/PaymentInstrument'
+      platform:
+        description: Platform where the transaction occurred
+        type: string
+        x-validation-required-message: "{DM044}"
+      createdOn:
+        type: string
+        format: date-time
+      threeDSecureStatus:
+        description: 3DS status
+        type: string
+
+  Amount:
+    type: object
+    description: Amount
+    required:
+      - value
+      - currency
+    properties:
+      currency:
+        type: string
+        x-validation-required-message: "{DM083}"
+      exponent:
+        type: integer
+        format: int32
+        default: 2
+      value:
+        type: integer
+        format: int64
+        x-validation-required-message: "{DM084}"
+
+  DisputeEventStateChangeRequest:
+    required:
+      - state
+    properties:
+      state:
+        type: string
+        description: Dispute event state
+        x-validation-required-message: "{DM090}"
+        enum:
+          - BUSINESS_ERROR
+          - PROCESSED
+          - PROCESSING_ERROR
+          - READY_FOR_RETRY
+      reason:
+        type: string
+        description: An optional reason for the state change
+
+  ProcessorEventStateChangeRequest:
+    required:
+      - state
+    properties:
+      state:
+        type: string
+        description: Processor event state
+        x-validation-required-message: "{DM090}"
+        enum:
+          - BUSINESS_ERROR
+          - PROCESSED
+          - PROCESSING_ERROR
+          - READY_FOR_RETRY
+      reason:
+        type: string
+        description: An optional reason for the state change
+
+
+  ProcessorEvent:
+    type: object
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - description: Processor event represents the dispute record as recieved from the processor
+        required:
+          - adjustmentAmount
+          - caseNumber
+          - disputeAmount
+          - disputeWorkflow
+          - fileRecord
+          - paymentInstrument
+          - paymentProcessor
+          - postDate
+          - requestType
+          - reason
+          - transactionIdentifier
+        properties:
+          arn:
+            description: >
+              Acquirer reference number references the transaction in acquiring processor and it's usually included in 
+              the dispute reported by the processor
+            type: string
+          adjustmentAmount:
+            $ref: '#/definitions/ReportedAmount'
+            x-validation-required-message: "{DM053}"
+          caseNumber:
+            description: Case number at processor for the cardholder dispute
+            type: string
+            x-validation-required-message: "{DM013}"
+          disputeAmount:
+            $ref: '#/definitions/Amount'
+            x-validation-required-message: "{DM058}"
+          disputeWorkflow:
+            description: Status of the dispute at the card scheme
+            type: string
+            x-validation-required-message: "{DM054}"
+            enum: *DISPUTE_WORKFLOW
+          dueDate:
+            description: Date by which a dispute request must be responded to the processor
+            type: string
+            format: date-time
+          notes:
+            description: Dispute notes in the file
+            type: string
+          originalTransactionAmount:
+            $ref: '#/definitions/ReportedAmount'
+          fileRecord:
+            $ref: '#/definitions/FileRecordDetail'
+          paymentInstrument:
+            $ref: '#/definitions/PaymentInstrument'
+            x-validation-required-message: "{DM059}"
+          paymentProcessor:
+            description: Payment processor that reported the dispute
+            type: string
+            x-validation-required-message: "{DM014}"
+            enum: *PAYMENT_PROCESSOR
+          postDate:
+            description: Date on which the processor event was posted to yapstone
+            type: string
+            format: date-time
+            x-validation-required-message: "{DM021}"
+          processedTransactionAmount:
+            $ref: '#/definitions/ReportedAmount'
+          requestDate:
+            description: Date on which the dispute was reported to the processor
+            type: string
+            format: date-time
+          requestType:
+            type: string
+            x-validation-required-message: "{DM056}"
+            enum:
+              - FINANCIAL
+              - NON_FINANCIAL
+              - UNKNOWN
+          reason:
+            $ref: '#/definitions/Reason'
+            x-validation-required-message: "{DM057}"
+          state:
+            description: State of the processor event
+            type: string
+            readOnly: true
+            enum:
+              - NEW
+              - BUSINESS_ERROR
+              - PROCESSING_ERROR
+              - READY_FOR_RETRY
+              - TERMINAL_ERROR
+              - PROCESSED
+            x-validation-read-only-message: "{DM088}"
+          transactionIdentifier:
+            description: Identifier of the disputed transaction reported in processor file
+            type: string
+            x-validation-required-message: "{DM060}"
+          preArbitrationType:
+            type: string
+            enum: *PRE_ARBITRATION_TYPE
+
+  EvidenceResponse:
+    type: object
+    properties:
+      evidences:
+        type: array
+        items:
+          $ref: '#/definitions/Evidence'
+            
+  Evidence:
+    type: object
+    x-abstract-class: true
+    x-jackson-json-sub-type-info: true
+    description: An abstract evidence
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - discriminator: type
+        required:
+          - type
+        properties:
+          acl:
+            readOnly: true
+            $ref: '#/definitions/Acl'
+          type:
+            type: string
+            x-validation-required-message: "{DM024}"
+            enum:
+              - FILE
+              - TEXT
+          wizardStep:
+            type: string
+            description: Wizard step in portal for which this evidence is being uploaded
+          finalEvidence:
+            type: boolean
+            description: Indicates whether the submitted evidence is final or not
+
+
+  FileEvidence:
+    type: object
+    x-jackson-json-type-name: FILE
+    description: Represents an evidence of type file
+    allOf:
+      - $ref: '#/definitions/Evidence'
+      - required:
+          - evidenceCategory
+          - evidenceType
+          - fileName
+          - fileId
+          - fileSizeInBytes
+        properties:
+          evidenceCategory:
+            description: Cateogry of the file that's being uploaded as an evidence
+            type: string
+            enum:
+              - CANCELLATION
+              - CHARGE
+              - REFUND
+              - SHIPPING
+              - SIGNATURE
+              - USAGE
+            x-validation-required-message: "{DM062}"
+          evidenceType:
+            description: Represents type of EvidenceFile object
+            type: string
+            enum:
+              - ACCESS_LOG
+              - COMMUNICATION
+              - DISCLOSURE
+              - DOCUMENTATION
+              - EXPLANATION_LETTER
+              - RECEIPT
+            x-validation-required-message: "{DM063}"
+          fileName:
+            type: string
+            x-validation-required-message: "{DM064}"
+          fileId:
+            type: string
+            description: Reference to the stored file in file service
+            x-validation-required-message: "{DM065}"
+          fileSizeInBytes:
+            type: integer
+            format: int64
+            minimum: 1
+            x-validation-minimum-message: "{DM066}"
+            x-validation-required-message: "{DM068}"
+          note:
+            type: string
+            description: Text note for file evidence
+
+  TextEvidence:
+    type: object
+    x-jackson-json-type-name: TEXT
+    description: Represents an evidence of type text
+    allOf:
+      - $ref: '#/definitions/Evidence'
+      - required:
+          - content
+        properties:
+          content:
+            type: string
+            description: Text content
+            x-validation-required-message: "{DM069}"
+            
+  CaseFile:
+    type: object
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - description: A case file represents a collection of evidences used to contest a dispute
+        properties:
+          acl:
+            readOnly: true
+            $ref: '#/definitions/Acl'
+          disputeId:
+            type: string
+            description: Id of the dispute entity that this case file is tied to
+          expiresOn:
+            description: Date on which the case file expires
+            type: string
+            format: date-time
+          evidenceIds:
+            type: array
+            items:
+              description: Id of the evidence
+              type: string
+          state:
+            type: string
+            enum:
+              - OPEN
+              - CLOSED
+              - EXPIRED
+          totalFileSizeInBytes:
+            description: Total size of the files added to this case file 
+            type: integer
+            format: int64
+
+  Dispute:
+    type: object
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - description: A dispute represents a dispute initiated by the cardholder
+        properties:
+          arn:
+            description: > 
+              Acquirer reference number references the transaction in acquiring processor and it's usually included in 
+              the dispute reported by the processor
+            type: string
+          acl:
+            readOnly: true
+            $ref: '#/definitions/Acl'
+          action:
+            description: Action taken on the dispute
+            type: string
+            enum:
+              - ACCEPT
+              - CONTEST
+          caseFileId:
+            description: The current open case file ID
+            type: string
+          disputeAmount:
+            $ref: '#/definitions/Amount'
+          disputeIdentifier:
+            type: string
+            description: The unique aggregate identifer for the dispute
+          disputeModel:
+            description: The dispute model
+            type: string
+          disputeWorkflow:
+            type: string
+            description: Status of the dispute at the card scheme
+          filedAgainst:
+            type: array
+            items:
+              $ref: '#/definitions/FiledAgainstRef'
+          filer:
+            $ref: '#/definitions/FilerRef'
+          finalDisposition:
+            $ref: '#/definitions/DisputeFinalDisposition'
+          legalEntity:
+            description: Legal entity associated with the dispute
+            type: string
+          linkedOrders:
+            type: array
+            items:
+              $ref: '#/definitions/OrderRef'
+          marketplaceId:
+            description: Yap id of the marketplace
+            type: string
+          originalTransaction:
+            $ref: '#/definitions/OriginalTransaction'
+          paymentProcessor:
+            description: Payment processor that reported the disputed
+            type: string
+          portalWizardState:
+            description: UI wizard state from dispute portal
+            type: string
+          preArbitrationType:
+            type: string
+            description: Value of pre arbitration type
+          processorCaseNumbers:
+            description: Case numbers reported by the processor
+            type: array
+            items:
+              type: string
+          reason:
+            $ref: '#/definitions/Reason'
+          refund:
+            $ref: '#/definitions/Refund'
+          status:
+            description: Status of the dispute
+            type: string
+          processorReportedDetails:
+            $ref: '#/definitions/ProcessorReportedDetails'
+          workflowDetails:
+            $ref: '#/definitions/WorkflowDetails'
+          scope:
+            type: string
+          history:
+            type: array
+            items:
+              $ref: '#/definitions/StateChange'
+          disputeEventItems:
+            description: Dispute events associated with the dispute
+            type: array
+            items:
+              $ref: '#/definitions/DisputeEventItem'
+
+  FinalDisposition:
+    description: final disposition
+    properties:
+      disposition:
+        type: string
+        enum:
+          - WON
+          - LOST
+      dispositionReason:
+        description: Final disposition reason
+        type: string
+
+  Acl:
+    description: Scope access values assigned to access the entity
+    properties:
+      scopes:
+        type: array
+        items:
+          type: string
+
+  DisputeFinalDisposition:
+    description: Final disposition
+    properties:
+      disposition:
+        type: string
+      dispositionReason:
+        description: Final disposition reason
+        type: string
+
+  DisputeCreateRequest:
+    type: object
+    description: A dispute create request
+    required:
+      - disputeModel
+      - disputeWorkflow
+      - paymentProcessor
+      - reason
+      - processorReportedDetails
+    properties:
+      arn:
+        description: >
+          Acquirer reference number references the transaction in acquiring processor and it's usually included in
+          the dispute reported by the processor
+        type: string
+      disputeAmount:
+        $ref: '#/definitions/Amount'
+      disputeModel:
+        description: The dispute model
+        type: string
+        enum: *DISPUTE_MODEL
+        x-validation-required-message: "{DM071.1}"
+      disputeWorkflow:
+        type: string
+        description: Status of the dispute at the card scheme
+        enum: *DISPUTE_WORKFLOW
+        x-validation-required-message: "{DM071.2}"
+      filedAgainst:
+        type: array
+        items:
+          $ref: '#/definitions/FiledAgainstRef'
+      filer:
+        $ref: '#/definitions/FilerRef'
+      legalEntity:
+        description: Legal entity associated with the dispute
+        type: string
+      marketplaceId:
+        description: Yap id of the marketplace
+        type: string
+      originalTransaction:
+        $ref: '#/definitions/OriginalTransaction'
+      paymentProcessor:
+        description: Payment processor that reported the disputed
+        type: string
+        enum: *PAYMENT_PROCESSOR
+        x-validation-required-message: "{DM071.3}"
+      preArbitrationType:
+        type: string
+        description: Value of pre arbitration type
+        enum: *PRE_ARBITRATION_TYPE
+      processorCaseNumber:
+        description: Case numbers reported by the processor
+        type: string
+      processorReportedDetails:
+        $ref: '#/definitions/ProcessorReportedDetails'
+      reason:
+        $ref: '#/definitions/Reason'
+      refund:
+        $ref: '#/definitions/Refund'
+
+
+  DisputeEvent:
+    type: object
+    x-abstract-class: true
+    x-jackson-json-sub-type-info: true
+    allOf:
+      - $ref: '#/definitions/RestEntity'
+      - discriminator: 'type'
+        description: Abstract dispute event
+        required:
+          - type
+        properties:
+          disputeId:
+            description: Id of the dispute the event belongs to
+            type: string
+          type:
+            enum: *DISPUTE_EVENT
+            x-validation-required-message: "{DM024}"
+            
+  CaseFileExpired:
+    type: object
+    x-jackson-json-type-name: CASE_FILE_EXPIRED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Event dispatched when a case file expires
+        required:
+          - caseFileId
+        properties:
+          caseFileId:
+            type: string
+            description: Id of the case file that expired
+            x-validation-required-message: "{DM085}"
+
+  ProcessorEventCreated:
+    type: object
+    x-jackson-json-type-name: PROCESSOR_EVENT_CREATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: ProcessorEvent created
+        required:
+          - disputeIdentifier
+          - disputeCreateRequest
+          - processorEventId
+        properties:
+          processorEventId:
+            type: string
+            description: Id of the processor event that resulted in this event
+            x-validation-required-message: "{DM072}"
+          disputeIdentifier:
+            type: string
+            description: An unique identifier used to aggregate similar dispute
+            x-validation-required-message: "{DM070}"
+          disputeCreateRequest:
+            $ref: '#/definitions/DisputeCreateRequest'
+            x-validation-required-message: "{DM071.0}"
+          fileRecordType:
+            description: Type of the dispute file records
+            type: string
+            enum: *RECORD_TYPE
+          state:
+            description: State of the processor event
+            type: string
+            readOnly: true
+            enum:
+              - NEW
+              - BUSINESS_ERROR
+              - PROCESSING_ERROR
+              - READY_FOR_RETRY
+              - TERMINAL_ERROR
+              - PROCESSED
+            x-validation-read-only-message: "{DM088}"
+
+  ReleaseOrderHoldRequested:
+    type: object
+    x-jackson-json-type-name: RELEASE_ORDER_HOLD_REQUESTED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Release order hold requested
+
+  FollowUpDateCalculated:
+    type: object
+    x-jackson-json-type-name: FOLLOW_UP_DATE_CALCULATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: FollowUpDate calculated
+        required:
+          - followUpDate
+          - triggeredBy
+        properties:
+          followUpDate:
+            type: string
+            description: Follow up date
+            format: date-time
+            x-validation-required-message: "{DM043}"
+          processorEventId:
+            type: string
+            description: Id of the processor event that resulted in this event
+          initiatedBy:
+            type: string
+            description: Id of the entity that originated this event
+          triggeredBy:
+            enum: *TRIGGERED_BY
+            x-validation-required-message: "{DM093}"
+
+  WorkByDateCalculated:
+    type: object
+    x-jackson-json-type-name: WORK_BY_DATE_CALCULATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: WorkByDate calculated
+        required:
+          - workByDate
+          - processorEventId
+        properties:
+          workByDate:
+            type: string
+            description: Work by date
+            format: date-time
+            x-validation-required-message: "{DM041}"
+          processorEventId:
+            type: string
+            description: Id of the processor event that resulted in this event
+            x-validation-required-message: "{DM072}"
+
+  AgentFollowUpDateCalculated:
+    type: object
+    x-jackson-json-type-name: AGENT_FOLLOW_UP_DATE_CALCULATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: AgentFollowUpDate calculated
+        required:
+          - agentFollowUpDate
+          - triggeredBy
+        properties:
+          agentFollowUpDate:
+            type: string
+            description: Agent follow up date
+            format: date-time
+            x-validation-required-message: "{DM092}"
+          processorEventId:
+            type: string
+            description: Id of the processor event that resulted in this event
+          initiatedBy:
+            type: string
+            description: Id of the entity that originated this event
+          triggeredBy:
+            enum: *TRIGGERED_BY
+            x-validation-required-message: "{DM093}"
+
+  AdjustmentOrderCreated:
+    type: object
+    x-jackson-json-type-name: ADJUSTMENT_ORDER_CREATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Adjustment order created
+        required:
+          - orderId
+          - orderType
+          - orderSubType
+          - initiatedBy
+          - createdOn
+        properties:
+          orderId:
+            type: string
+            description: Id of the order that was created
+            x-validation-required-message: "{DM073}"
+          orderType:
+            type: string
+            description: Type of the order
+            enum: *ORDER_TYPE
+            x-validation-required-message: "{DM074}"
+          orderSubType:
+            type: string
+            description: SubType of the order
+            enum: *ORDER_SUB_TYPE
+            x-validation-required-message: "{DM075}"
+          initiatedBy:
+            type: string
+            description: Id of the ProcessorEvent that initiated this event
+            x-validation-required-message: "{DM076}"
+          createdOn:
+            type: string
+            description: Date on which the order is created
+            format: date-time
+            x-validation-required-message: "{DM077}"
+
+  EvidenceReceivedEvent:
+    type: object
+    x-jackson-json-type-name: EVIDENCE_RECEIVED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Evidence received event
+        properties:
+          caseFileId:
+            type: string
+            description: The current open case file associated with the dispute
+
+  DisputeClosedEvent:
+    type: object
+    x-jackson-json-type-name: DISPUTE_CLOSED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Status updated event
+
+  DisputeAcceptedEvent:
+    type: object
+    x-jackson-json-type-name: DISPUTE_ACCEPTED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Dispute Accepted event
+
+  CrmCaseCreated:
+     type: object
+     x-jackson-json-type-name: CRM_CASE_CREATED
+     allOf:
+       - $ref: '#/definitions/DisputeEvent'
+       - type: object
+         description: CRM case created
+         required:
+           - caseId
+           - caseStatus
+         properties:
+           caseId:
+             type: string
+             description:  Id of the crm ticket that was created
+             x-validation-required-message: "{DM078}"
+           caseStatus:
+             type: string
+             description: CRM case status
+             enum: *CRM_CASE_STATUS
+             x-validation-required-message: "{DM079}"
+           processorEventId:
+             type: string
+             description: Id of the processor event that resulted in this event
+
+  CrmCaseUpdated:
+    type: object
+    x-jackson-json-type-name: CRM_CASE_UPDATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: CRM case updated
+        required:
+          - caseId
+          - caseStatus
+        properties:
+          caseId:
+            type: string
+            description:  Id of the crm ticket that was created
+            x-validation-required-message: "{DM078}"
+          caseStatus:
+            type: string
+            description: CRM case status
+            enum: *CRM_CASE_STATUS
+            x-validation-required-message: "{DM079}"
+          processorEventId:
+            type: string
+            description: Id of the processor event that resulted in this event
+
+  FinalDispositionUpdated:
+      type: object
+      x-jackson-json-type-name: FINAL_DISPOSITION_UPDATED
+      allOf:
+        - $ref: '#/definitions/DisputeEvent'
+        - type: object
+          description: Final Disposition Updated
+          required:
+            - finalDisposition
+            - triggeredBy
+          properties:
+            finalDisposition:
+              $ref: '#/definitions/FinalDisposition'
+            initiatedBy:
+               type: string
+               description: Id of the entity that originated this event
+            triggeredBy:
+              enum: *TRIGGERED_BY
+              x-validation-required-message: "{DM093}"
+
+  EvidenceRequested:
+    type: object
+    x-jackson-json-type-name: EVIDENCE_REQUESTED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Evidence requested event
+        required:
+          - evidenceDueBy
+          - triggeredBy
+        properties:
+          evidenceDueBy:
+            type: string
+            format: date-time
+            x-validation-required-message: "{DM080}"
+          processorEventId:
+            type: string
+            description: Id of the ProcessorEvent that initiated this event
+          triggeredBy:
+            enum: *TRIGGERED_BY
+            x-validation-required-message: "{DM093}"
+
+  EvidenceSubmitted:
+    type: object
+    x-jackson-json-type-name: EVIDENCE_SUBMITTED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Evidence submitted event
+        properties:
+          caseFileId:
+            type: string
+            description: Id of the submitted case file
+          initiatedBy:
+            type: string
+            description: Id of the entity that originated this event
+
+  DecisionPending:
+    type: object
+    x-jackson-json-type-name: DECISION_PENDING
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Decision Pending event
+        properties:
+          initiatedBy:
+            type: string
+            description: Id of the entity that originated this event
+
+  DisputeEventPagedResponse:
+    allOf:
+      - $ref: '#/definitions/RestResponse'
+      - type: object
+        properties:
+          events:
+            type: array
+            items:
+              $ref: '#/definitions/DisputeEvent'
+
+
+  DisputeWorkflowStatusUpdated:
+    type: object
+    x-jackson-json-type-name: WORKFLOW_STATUS_UPDATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Workflow Status Updated
+        required:
+          - disputeWorkflow
+        properties:
+          disputeWorkflow:
+            enum: *DISPUTE_WORKFLOW
+            x-validation-required-message: "{DM081}"
+
+  PortalWizardStateUpdated:
+    type: object
+    x-jackson-json-type-name: PORTAL_WIZARD_STATE_UPDATED
+    allOf:
+      - $ref: '#/definitions/DisputeEvent'
+      - type: object
+        description: Portal Wizard State Updated
+        required:
+          - portalWizardState
+        properties:
+          portalWizardState:
+            type: string
+            description: UI wizard state from dispute portal
+            x-validation-required-message: "{DM087}"
+
+  Page:
+    description: Pagination support
+    properties:
+      limit:
+        type: integer
+        format: int32
+        description: Number of items to retrieve
+        minimum: 0
+        x-validation-minimum-message: "{DM032}"
+      offset:
+        type: integer
+        format: int32
+        description: Position in pagination
+        minimum: 0
+        x-validation-minimum-message: "{DM033}"
+      count:
+        type: integer
+        format: int32
+        description: Number of items available
+        minimum: 0
+        x-validation-minimum-message: "{DM035}"
+
+  Meta:
+    description: Response metadata
+    properties:
+      page:
+        $ref: '#/definitions/Page'
+      pageCount:
+        type: integer
+        format: int32
+        description: Number of pages available
+        minimum: 0
+        x-validation-minimum-message: "{DM036}"
+      totalCount:
+        type: integer
+        format: int64
+        description: Number of total items
+        minimum: 0
+        x-validation-minimum-message: "{DM037}"
+
+  AbstractEntity: # stub for com.yapstone.dispute.messages.events.entities.dto.AbstractEntityDTO; wired in pom.xml file; see <import-mappings> el.
+    type: object
+    discriminator: "abstractEntityType" # required for inheritance to work
+
+  RestEntity:
+    type: object
+    allOf:
+      - $ref: '#/definitions/AbstractEntity'
+      - discriminator: "restEntityType" # required for inheritance to work
+        properties:
+          id:
+            type: string
+          version:
+            type: string
+          meta:
+              $ref: '#/definitions/EntityMeta'
+
+  EntityMeta:
+    description: Meta data that belongs to a single entity being returned
+    properties:
+      createdOn:
+        type: string
+        format: date-time
+      modifiedOn:
+        type: string
+        format: date-time
+
+  RestResponse:
+    type: object
+    discriminator: "restResponse" # required for inheritance to work
+    properties:
+      _meta:
+        $ref: '#/definitions/Meta'
+
+
+  # Only used to remove error msg when using $ref: '#/definitions/Errors'. Actual Errors is mapped to correct class in
+  # rest-api pom, in swagger-codegen-maven-plugin import-mappings config
+  Errors:
